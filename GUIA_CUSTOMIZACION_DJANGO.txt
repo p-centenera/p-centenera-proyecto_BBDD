@@ -1,0 +1,290 @@
+GUIA ORDENADA PARA ENTENDER Y CUSTOMIZAR EL SITIO DJANGO
+========================================================
+
+1) OBJETIVO DE ESTA GUIA
+------------------------
+Esta guia sirve para:
+- Entender la estructura actual del proyecto Django.
+- Identificar donde se conecta la base de datos.
+- Ver donde estan las consultas SQL y la logica de negocio.
+- Definir como adaptar el proyecto a otra base de datos.
+- Definir como reemplazar consultas actuales por consultas nuevas.
+
+
+2) ESTRUCTURA ACTUAL DEL PROYECTO
+---------------------------------
+Raiz del proyecto:
+- manage.py
+  Punto de entrada para ejecutar comandos Django (runserver, migrate, etc.).
+
+- db.sqlite3
+  Base de datos actual (SQLite) usada por defecto.
+
+- miproyecto_gbd/
+  Paquete principal con configuracion y logica del backend.
+
+- templates/
+  HTML de las paginas.
+
+- static/css/main.css
+  Estilos visuales.
+
+- README.md
+  Documentacion basica.
+
+Carpeta miproyecto_gbd/:
+- settings.py
+  Configuracion global Django (incluye DATABASES, INSTALLED_APPS, etc.).
+
+- urls.py
+  Enrutado principal de URLs.
+
+- views.py
+  Controladores de peticiones HTTP (conectan formularios, consultas y plantillas).
+
+- forms.py
+  Formularios Django usados por las vistas.
+
+- sqlUtil.py
+  Utilidades SQL: funciones para ejecutar o construir consultas.
+
+- funciones.py
+  Logica auxiliar del proyecto.
+
+- asgi.py / wsgi.py
+  Configuracion de despliegue.
+
+Carpeta templates/:
+- base.html
+  Plantilla base comun.
+
+- navbar.html
+  Navegacion comun.
+
+- home.html, formulario.html, euribor.html, euriborMes.html
+  Vistas HTML concretas de la app.
+
+
+3) FLUJO FUNCIONAL (RESUMEN)
+----------------------------
+1. El usuario abre una URL definida en urls.py.
+2. Django llama a una funcion en views.py.
+3. La vista procesa formulario (forms.py) y/o llama a logica (funciones.py, sqlUtil.py).
+4. Se ejecutan consultas contra la base de datos.
+5. La vista devuelve una plantilla de templates/ con resultados.
+
+
+4) COMO CAMBIAR A OTRA BASE DE DATOS
+------------------------------------
+Paso A: Definir el nuevo motor
+- Elegir el motor objetivo (ejemplo: PostgreSQL, MySQL, SQL Server).
+- Instalar el driver Python correspondiente en el entorno virtual.
+
+Ejemplos de drivers frecuentes:
+- PostgreSQL: psycopg2-binary
+- MySQL/MariaDB: mysqlclient o PyMySQL
+- SQL Server: mssql-django o pyodbc (segun estrategia)
+
+Paso B: Modificar settings.py
+- Cambiar DATABASES['default'] para el nuevo ENGINE, NAME, USER, PASSWORD, HOST, PORT.
+- Mover credenciales a variables de entorno (recomendado).
+
+Paso C: Revisar compatibilidad SQL
+- Si sqlUtil.py tiene SQL especifico de SQLite, adaptarlo al dialecto nuevo.
+- Revisar funciones SQL de fechas, joins, casting, LIMIT/OFFSET, etc.
+
+Paso D: Inicializar esquema
+- Si se usa ORM Django: crear/ajustar modelos y ejecutar migrate.
+- Si se usa SQL manual: aplicar scripts SQL equivalentes en la nueva base.
+
+Paso E: Verificacion
+- Probar conexiones.
+- Probar formularios y vistas clave.
+- Confirmar que templates muestran los nuevos resultados correctamente.
+
+
+5) COMO CAMBIAR LAS CONSULTAS ACTUALES POR OTRAS
+-------------------------------------------------
+Paso 1: Inventario de consultas
+- Localizar todas las consultas en sqlUtil.py y, si aplica, en views.py/funciones.py.
+- Registrar para cada consulta:
+  - Nombre de funcion
+  - Entrada esperada (parametros)
+  - Salida esperada (columnas, tipo de dato)
+  - Pantalla/plantilla que depende de esa salida
+
+Paso 2: Definir nuevas necesidades
+- Especificar claramente:
+  - Que datos se quieren consultar
+  - Filtros
+  - Agrupaciones
+  - Orden
+  - Limites
+  - Formato de salida
+
+Paso 3: Reescribir capa de acceso a datos
+- Implementar nuevas funciones en sqlUtil.py con nombres claros.
+- Mantener una interfaz estable para minimizar cambios en views.py.
+
+Paso 4: Ajustar vistas y formularios
+- Actualizar views.py para llamar a las nuevas funciones SQL.
+- Ajustar forms.py si cambian campos de entrada.
+
+Paso 5: Ajustar templates
+- Actualizar las plantillas que renderizan los resultados para reflejar nuevas columnas o estructura.
+
+Paso 6: Pruebas
+- Probar caso nominal y casos borde.
+- Verificar errores de conversion de tipos y valores nulos.
+
+
+6) PROPUESTA DE REFACTORIZACION MINIMA (RECOMENDADA)
+-----------------------------------------------------
+Para facilitar futuros cambios de base de datos y consultas:
+- Centralizar todo el SQL en sqlUtil.py (o modulo datos/ dedicado).
+- Evitar SQL incrustado directamente en views.py.
+- Crear funciones pequenas y orientadas a un caso de uso.
+- Estandarizar formato de salida de funciones (lista de dict, tuplas, etc.).
+- Documentar cada funcion SQL con:
+  - Proposito
+  - Parametros
+  - Salida
+  - Dependencias de motor SQL
+
+
+7) CHECKLIST DE MIGRACION
+-------------------------
+[ ] Seleccionar motor de base de datos destino.
+[ ] Instalar driver Python.
+[ ] Actualizar DATABASES en settings.py.
+[ ] Configurar variables de entorno para credenciales.
+[ ] Adaptar SQL no portable en sqlUtil.py.
+[ ] Crear/cargar esquema y datos en nueva BD.
+[ ] Ajustar consultas a nuevos requerimientos funcionales.
+[ ] Revisar forms.py y views.py.
+[ ] Revisar templates afectados.
+[ ] Ejecutar pruebas funcionales end-to-end.
+
+
+8) RIESGOS COMUNES Y PREVENCION
+-------------------------------
+- Riesgo: SQL especifico de SQLite rompe en otro motor.
+  Prevencion: revisar funciones de fecha, autoincrement, limitaciones de tipos.
+
+- Riesgo: Cambios de columnas rompen templates.
+  Prevencion: validar estructura de salida y actualizar HTML al mismo tiempo.
+
+- Riesgo: Credenciales hardcodeadas.
+  Prevencion: usar variables de entorno y archivo .env.
+
+- Riesgo: Regresiones por cambios en consultas.
+  Prevencion: pruebas por cada vista clave con datos reales de ejemplo.
+
+
+9) SIGUIENTE PASO PRACTICO SUGERIDO
+-----------------------------------
+Empezar por:
+1. Revisar settings.py y definir el motor destino.
+2. Listar funciones SQL actuales en sqlUtil.py.
+3. Crear un mapa "consulta actual -> consulta nueva".
+4. Implementar y probar una sola vista completa de punta a punta.
+
+10) APLICADO A ESTE PROYECTO (MAPA REAL)
+----------------------------------------
+Situacion actual detectada:
+- settings.py apunta a SQLite (db.sqlite3) en DATABASES['default'].
+- sqlUtil.py NO usa DATABASES de Django: abre conexion MySQL manual con mysql.connector.
+- funciones.py consulta directamente la tabla euribor usando SQL en texto.
+- forms.py y views.py dependen de esas consultas para poblar ano/mes y resultados.
+
+Conclusión importante:
+- Ahora mismo hay dos configuraciones de BD en paralelo (SQLite por Django y MySQL por sqlUtil.py).
+- Para customizar bien el proyecto, hay que elegir una estrategia unica.
+
+Estrategias posibles:
+
+Estrategia 1 (recomendada para este proyecto):
+- Mantener SQL manual y usar una sola conexion central en sqlUtil.py.
+- Dejar DATABASES de Django coherente con la misma BD para evitar confusion.
+
+Estrategia 2:
+- Migrar a ORM Django (modelos) y eliminar SQL manual progresivamente.
+- Es mas limpia a largo plazo, pero requiere mas cambios ahora.
+
+Inventario real de consultas actuales:
+- consultaEuribor(mes, anio):
+  select valor from euribor where anio=... and mes=...
+
+- anios():
+  select distinct anio, anio from euribor order by anio
+
+- meses(anio):
+  select distinct mes, mes from euribor where anio=... order by mes
+
+- graficoEuribor() y graficoEuriborMes():
+  select mes, anio, valor from euribor
+
+Contrato de datos actual (lo que esperan forms/views/templates):
+- Tabla principal: euribor
+- Columnas minimas esperadas:
+  - anio (entero)
+  - mes (entero)
+  - valor (numerico)
+- anios() y meses() deben devolver pares (valor, etiqueta) para ChoiceField.
+
+Como cambiar a OTRA BASE DE DATOS sin romper la app:
+
+Paso 1: Parametrizar conexion en sqlUtil.py
+- Reemplazar host/database/user/password hardcodeados por variables de entorno:
+  DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT
+
+Paso 2: Alinear settings.py
+- Si se mantiene SQL manual, dejar DATABASES consistente con el mismo motor elegido.
+- Si no se usara ORM, se puede mantener minimo, pero documentando que la app consulta por sqlUtil.py.
+
+Paso 3: Validar esquema en la nueva BD
+- Crear la tabla equivalente a euribor con columnas compatibles.
+- Cargar datos historicos antes de probar formularios y graficos.
+
+Paso 4: Ejecutar pruebas funcionales criticas
+- Home.
+- Formulario: carga de anos, carga dinamica de meses, consulta de valor.
+- Graficos: euribor.png y euriborMes.png generados en static/.
+
+Como cambiar a OTRAS CONSULTAS DIFERENTES (ejemplo de metodo):
+
+Paso A: Definir nuevo caso de uso
+- Ejemplo: consultar promedio anual en lugar de valor mes puntual.
+
+Paso B: Crear nueva funcion en funciones.py
+- promedioEuriborAnual(anio)
+
+Paso C: Crear/ajustar SQL en sqlUtil.py
+- select avg(valor) from euribor where anio=...
+
+Paso D: Ajustar forms.py
+- Si cambia entrada (por ejemplo solo ano), modificar campos y validaciones.
+
+Paso E: Ajustar views.py
+- Llamar a la nueva funcion y pasar resultado al template.
+
+Paso F: Ajustar template correspondiente
+- Mostrar nuevo dato/tabla/grafico con los nombres de contexto actualizados.
+
+Plantilla para mapear cambios de consultas:
+- Consulta actual:
+- Funcion actual que la usa:
+- Nueva consulta objetivo:
+- Nueva funcion propuesta:
+- Vista afectada:
+- Template afectado:
+- Prueba de validacion:
+
+Orden recomendado de ejecucion en este repo:
+1. Unificar estrategia de BD (evitar SQLite + MySQL mezclados).
+2. Externalizar credenciales en sqlUtil.py.
+3. Confirmar esquema destino y cargar datos.
+4. Migrar una consulta completa (de formulario a template).
+5. Repetir para el resto y validar graficos.
+
+Fin de la guia.

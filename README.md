@@ -98,6 +98,24 @@ esqueleto_formulario/
 
 Con el entorno Python activo:
 
+1. Instalar dependencias de base de datos para Django y consultas:
+
+```bash
+pip install mysqlclient mysql-connector-python pandas matplotlib
+```
+
+2. Configurar variables de entorno MySQL (PowerShell):
+
+```powershell
+$env:DB_HOST="localhost"
+$env:DB_PORT="3306"
+$env:DB_NAME="clases_ceu_bc_prof"
+$env:DB_USER="root"
+$env:DB_PASSWORD=""
+```
+
+3. Iniciar servidor:
+
 ```bash
 python manage.py runserver
 ```

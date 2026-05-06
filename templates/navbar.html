@@ -9,9 +9,9 @@
 
     <div class="collapse navbar-collapse" id="navbarNav">
         {# Enlaces a cada vista funcional del proyecto. #}
-        {# Cada <li> representa una opción del menú.
-           Se aplica la clase active comparando request.path con la ruta actual,
-           y cada href se genera con {% url %} para resolver URLs por nombre. #}
+          {# Cada <li> representa una opción del menú.
+              Se aplica la clase active comparando request.path con la ruta actual,
+              y cada href se genera con la etiqueta url de Django para resolver rutas por nombre. #}
         <ul class="navbar-nav">
             <li class="nav-item {% if request.path == '/' %} active {% endif %}">
                 <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>
