@@ -1,17 +1,13 @@
 
-
-{# Barra de navegación principal de la aplicación. #}
+<!-- Barra de navegacion principal de la aplicacion. -->
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    {# La marca solo se muestra cuando se recibe en el contexto. #}
+    <!-- La marca solo se muestra cuando se recibe en el contexto. -->
     {% if brand_name %}
         <span class="navbar-brand">{{ brand_name }}</span>
     {% endif %}
 
     <div class="collapse navbar-collapse" id="navbarNav">
-        {# Enlaces a cada vista funcional del proyecto. #}
-          {# Cada <li> representa una opción del menú.
-              Se aplica la clase active comparando request.path con la ruta actual,
-              y cada href se genera con la etiqueta url de Django para resolver rutas por nombre. #}
+        <!-- Enlaces a cada vista funcional del proyecto. -->
         <ul class="navbar-nav">
             <li class="nav-item {% if request.path == '/' %} active {% endif %}">
                 <a class="nav-link" href="{% url 'home' %}">Home <span class="sr-only">(current)</span></a>

@@ -7,7 +7,7 @@
   <p>Introduce los datos para obtener el valor del mes seleccionado.</p>
 
   <div>
-    {# Formulario principal: nombre, año y mes para consultar Euribor. #}
+    <!-- Formulario principal: nombre, ano y mes para consultar Euribor. -->
     <form action="" method="POST">
       {% csrf_token %}
       <p>{{ form.nombre.label_tag }} {{ form.nombre }}</p>
@@ -17,7 +17,7 @@
     </form>
 
     <div>
-      {# Mensaje de resultado cuando la consulta ya ha sido procesada. #}
+      <!-- Mensaje de resultado cuando la consulta ya ha sido procesada. -->
       {% if form.Euribor %}
         Hola {{ form.nombre.value }}. El valor del Euribor en el mes {{ form.mes.value }} del año {{ form.anio.value }} fue de {{ form.Euribor }}
       {% endif %}
@@ -27,8 +27,7 @@
 
 {% block extra_js %}
   <script>
-    // Al cambiar el año, se solicitan por AJAX los meses disponibles
-    // para reconstruir el desplegable de mes sin recargar la página.
+    // Al cambiar el ano, se solicitan por AJAX los meses disponibles.
     document.addEventListener('DOMContentLoaded', function () {
       const anioSelect = document.getElementById('id_anio');
       const mesSelect = document.getElementById('id_mes');
