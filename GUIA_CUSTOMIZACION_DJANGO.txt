@@ -58,8 +58,8 @@ Carpeta templates/:
 - navbar.html
   Navegacion comun.
 
-- home.html, formulario.html, euribor.html, euriborMes.html
-  Vistas HTML concretas de la app.
+- Plantillas de vistas de dominio (listados, detalle, formularios y paneles de resultados).
+  Vistas HTML concretas de la aplicacion.
 
 
 3) FLUJO FUNCIONAL (RESUMEN)
@@ -86,8 +86,8 @@ Paso C: Verificar coherencia de configuracion
 - sqlUtil.py debe conectarse a la misma base MySQL que settings.py.
 
 Paso D: Verificar esquema esperado
-- La tabla euribor debe existir con columnas compatibles:
-  anio, mes, valor.
+- Las tablas y columnas del nuevo analisis deben existir con tipos compatibles.
+- Confirmar claves primarias, claves foraneas e indices necesarios para consultas frecuentes.
 
 Paso E: Verificacion
 - Probar conexiones.
@@ -150,7 +150,7 @@ Para facilitar mantenimiento en MySQL y cambios de consultas:
 [ ] Revisar DATABASES en settings.py con ENGINE MySQL.
 [ ] Configurar variables de entorno para credenciales.
 [ ] Confirmar conexion en sqlUtil.py y lectura de datos.
-[ ] Verificar tabla euribor y carga de datos.
+[ ] Verificar esquema objetivo y carga de datos de trabajo.
 [ ] Ajustar consultas a nuevos requerimientos funcionales.
 [ ] Revisar forms.py y views.py.
 [ ] Revisar templates afectados.
@@ -180,100 +180,57 @@ Empezar por:
 3. Crear un mapa "consulta actual -> consulta nueva".
 4. Implementar y probar una sola vista completa de punta a punta.
 
-10) APLICADO A ESTE PROYECTO (MAPA REAL)
-----------------------------------------
-Situacion actual detectada:
-- settings.py usa MySQL en DATABASES['default'].
-- sqlUtil.py abre conexion MySQL manual con mysql.connector.
-- funciones.py consulta directamente la tabla euribor usando SQL en texto.
-- forms.py y views.py dependen de esas consultas para poblar ano/mes y resultados.
+10) GUIA GENERAL PARA CUSTOMIZAR A OTRO ANALISIS DE DATOS
+----------------------------------------------------------
+Situacion base recomendada:
+- Mantener MySQL como unica base de datos.
+- Centralizar el acceso a datos en una capa SQL (por ejemplo sqlUtil.py y funciones.py).
+- Separar claramente capa de datos (SQL), logica de negocio y presentacion (templates).
 
-Conclusión importante:
-- El proyecto queda fijado a MySQL como unica base de datos.
-- Se mantiene SQL manual centralizado en sqlUtil.py y funciones.py.
+Paso 1: Definir el nuevo analisis objetivo
+- Especificar preguntas de negocio o indicadores que se quieren obtener.
+- Definir entradas requeridas (filtros, periodos, categorias, segmentos).
+- Definir salida esperada (valor puntual, tabla, ranking, serie temporal, comparativa).
 
-Inventario real de consultas actuales:
-- consultaEuribor(mes, anio):
-  select valor from euribor where anio=... and mes=...
+Paso 2: Diseñar el contrato de datos
+- Identificar tablas fuente y relaciones necesarias.
+- Definir columnas minimas de entrada/salida por cada caso de uso.
+- Confirmar tipos de datos, nulos, permitidos y reglas de validacion.
 
-- anios():
-  select distinct anio, anio from euribor order by anio
+Paso 3: Mapear consultas actuales a consultas nuevas
+- Crear una matriz de transicion:
+  - Consulta actual
+  - Funcion actual que la consume
+  - Nueva consulta objetivo
+  - Nueva funcion propuesta
+  - Vista afectada
+  - Template afectado
+  - Prueba de validacion
 
-- meses(anio):
-  select distinct mes, mes from euribor where anio=... order by mes
+Paso 4: Implementar cambios por capas
+- Capa SQL: crear/ajustar funciones de consulta con nombres claros y parametros tipados.
+- Capa logica: encapsular calculos o transformaciones necesarias para el analisis.
+- Capa vistas/forms: adaptar entradas y flujo de validacion.
+- Capa templates: adaptar la representacion de resultados (texto, tablas, graficos).
 
-- graficoEuribor() y graficoEuriborMes():
-  select mes, anio, valor from euribor
+Paso 5: Validar funcional y tecnicamente
+- Probar cada caso de uso principal de extremo a extremo.
+- Verificar manejo de vacios, nulos, tipos invalidos y filtros sin resultados.
+- Comparar resultados con muestras conocidas para validar exactitud del analisis.
 
-Contrato de datos actual (lo que esperan forms/views/templates):
-- Tabla principal: euribor
-- Columnas minimas esperadas:
-  - anio (entero)
-  - mes (entero)
-  - valor (numerico)
-- anios() y meses() deben devolver pares (valor, etiqueta) para ChoiceField.
-
-Como mantener MySQL sin romper la app:
-
-Paso 1: Parametrizar conexion en sqlUtil.py
-- Reemplazar host/database/user/password hardcodeados por variables de entorno:
-  DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT
-
-Paso 2: Alinear settings.py
-- Mantener DATABASES en MySQL y consistente con las mismas credenciales.
-- Documentar que las consultas principales se ejecutan mediante sqlUtil.py.
-
-Paso 3: Validar esquema en MySQL
-- Crear la tabla equivalente a euribor con columnas compatibles.
-- Cargar datos historicos antes de probar formularios y graficos.
-
-Paso 4: Ejecutar pruebas funcionales criticas
-- Home.
-- Formulario: carga de anos, carga dinamica de meses, consulta de valor.
-- Graficos: euribor.png y euriborMes.png generados en static/.
-
-Como cambiar a OTRAS CONSULTAS DIFERENTES (ejemplo de metodo):
-
-Paso A: Definir nuevo caso de uso
-- Ejemplo: consultar promedio anual en lugar de valor mes puntual.
-
-Paso B: Crear nueva funcion en funciones.py
-- promedioEuriborAnual(anio)
-
-Paso C: Crear/ajustar SQL en sqlUtil.py
-- select avg(valor) from euribor where anio=...
-
-Paso D: Ajustar forms.py
-- Si cambia entrada (por ejemplo solo ano), modificar campos y validaciones.
-
-Paso E: Ajustar views.py
-- Llamar a la nueva funcion y pasar resultado al template.
-
-Paso F: Ajustar template correspondiente
-- Mostrar nuevo dato/tabla/grafico con los nombres de contexto actualizados.
-
-Paso G: Refinado visual (CSS y favicon)
+Paso 6: Refinado visual (CSS y favicon)
 - Revisar la hoja de estilos principal para ajustar colores, tipografias, espaciados y jerarquia visual.
 - Definir una paleta coherente (colores de fondo, texto, enlaces, botones y estados hover/active).
 - Unificar estilos de navegacion, formularios, tablas y titulos para mantener consistencia.
 - Validar que la interfaz se vea bien en escritorio y movil (responsive).
 - Añadir favicon del sitio y referenciarlo en la plantilla base para reforzar identidad visual.
 
-Plantilla para mapear cambios de consultas:
-- Consulta actual:
-- Funcion actual que la usa:
-- Nueva consulta objetivo:
-- Nueva funcion propuesta:
-- Vista afectada:
-- Template afectado:
-- Prueba de validacion:
+Orden recomendado de ejecucion:
+1. Definir analisis objetivo y contratos de datos.
+2. Preparar esquema MySQL y datos de trabajo.
+3. Adaptar consultas y funciones de negocio.
+4. Ajustar formularios, vistas y templates.
+5. Validar resultados y corregir desviaciones.
+6. Aplicar refinado estetico final.
 
-Orden recomendado de ejecucion en este repo:
-1. Mantener MySQL como unica estrategia de base de datos.
-2. Externalizar credenciales en sqlUtil.py.
-3. Confirmar esquema MySQL y cargar datos.
-4. Migrar una consulta completa (de formulario a template).
-5. Repetir para el resto y validar graficos.
-6. Aplicar refinado estetico final (CSS y favicon).
 
-Fin de la guia.
