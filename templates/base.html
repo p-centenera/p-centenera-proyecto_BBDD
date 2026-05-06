@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  {# Título base reutilizable por las plantillas hijas. #}
+  {% block title %}<title>Visor de datos macroeconómicos</title>{% endblock %}
+
+  {# Hoja de estilos principal del proyecto. #}
+  {% block main_css %}
+    <link rel="stylesheet" href="{% static './css/main.css' %}">
+  {% endblock %}
+</head>
+
+<body>
+  {# Encabezado común del sitio. #}
+  <h1>Visor de datos macroeconómicos</h1>
+
+  {# Navegación principal, reemplazable si una vista lo necesita. #}
+  {% block navbar %}
+    {% include 'navbar.html' with brand_name=brand_name %}
+  {% endblock %}
+
+  {# Contenido específico que sobrescriben las plantillas hijas. #}
+  {% block content %}{% endblock %}
+
+  {# Pie opcional para añadir contenido adicional. #}
+  {% block footer %}{% endblock %}
+
+  {# Punto de extensión para scripts de cada página. #}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

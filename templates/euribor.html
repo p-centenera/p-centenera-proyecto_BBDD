@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}<title>Gráfica Euribor | Visor macroeconómico</title>{% endblock %}
+
+{% block content %}
+    {# Imagen generada en servidor con la evolución agregada del Euribor. #}
+    <h2>Evolución del Euribor</h2>
+    <h3>Serie de los últimos 6 meses</h3>
+    <img src="{% static 'euribor.png' %}" width="700" alt="Gráfico general del Euribor">
+{% endblock %}

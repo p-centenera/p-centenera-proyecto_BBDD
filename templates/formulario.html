@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+
+{% block title %}<title>Consulta Euribor | Visor macroeconómico</title>{% endblock %}
+
+{% block content %}
+  <h2>Consulta del Euribor</h2>
+  <p>Introduce los datos para obtener el valor del mes seleccionado.</p>
+
+  <div>
+    {# Formulario principal: nombre, año y mes para consultar Euribor. #}
+    <form action="" method="POST">
+      {% csrf_token %}
+      <p>{{ form.nombre.label_tag }} {{ form.nombre }}</p>
+      <p>{{ form.anio.label_tag }} {{ form.anio }}</p>
+      <p>{{ form.mes.label_tag }} {{ form.mes }}</p>
+      <input type="submit" value="Consultar">
+    </form>
+
+    <div>
+      {# Mensaje de resultado cuando la consulta ya ha sido procesada. #}
+      {% if form.Euribor %}
+        Hola {{ form.nombre.value }}. El valor del Euribor en el mes {{ form.mes.value }} del año {{ form.anio.value }} fue de {{ form.Euribor }}
+      {% endif %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+  <script>
+    // Al cambiar el año, se solicitan por AJAX los meses disponibles
+    // para reconstruir el desplegable de mes sin recargar la página.
+    document.addEventListener('DOMContentLoaded', function () {
+      const anioSelect = document.getElementById('id_anio');
+      const mesSelect = document.getElementById('id_mes');
+
+      if (!anioSelect || !mesSelect) {
+        return;
+      }
+
+      anioSelect.addEventListener('change', function () {
+        const anio = anioSelect.value;
+        if (!anio) {
+          mesSelect.innerHTML = '';
+          return;
+        }
+
+        fetch('/formulario/meses/' + anio + '/')
+          .then(function (response) {
+            return response.json();
+          })
+          .then(function (data) {
+            mesSelect.innerHTML = '';
+
+            data.meses.forEach(function (mes) {
+              const opcion = document.createElement('option');
+              opcion.value = mes[0];
+              opcion.textContent = mes[1];
+              mesSelect.appendChild(opcion);
+            });
+          });
+      });
+    });
+  </script>
+{% endblock %}
+
+  
