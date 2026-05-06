@@ -1,0 +1,124 @@
+GUIA DE USO: PREPARACION DE ENTORNO (WINDOWS Y MAC)
+===================================================
+
+Objetivo
+--------
+Esta guia explica como preparar el entorno del proyecto Django en:
+- Windows
+- macOS
+
+Los scripts instalan dependencias y dejan el proyecto listo para ejecutar.
+
+
+Archivos disponibles en este proyecto
+-------------------------------------
+- preparar_entorno.cmd
+  Script para Windows (CMD), sin creacion/importacion de base de datos.
+
+- preparar_entorno_todo_en_uno.ps1
+  Script PowerShell todo en uno (incluye creacion e importacion SQL si hay cliente mysql).
+
+- preparar_entorno_macos.sh
+  Script para macOS, sin creacion/importacion de base de datos.
+
+- preparar_entorno_todo_en_uno.sh
+  Script bash todo en uno (incluye creacion e importacion SQL si hay cliente mysql).
+
+
+1) WINDOWS (RECOMENDADO PARA ALUMNADO)
+--------------------------------------
+Opcion A: CMD (recomendada cuando PowerShell tiene restricciones)
+
+Paso 1: abrir CMD en la carpeta del proyecto.
+Paso 2: ejecutar:
+  preparar_entorno.cmd
+
+Si no funciona por PATH, usar:
+  .\preparar_entorno.cmd
+
+Paso 3: activar entorno virtual:
+  .\.venv\Scripts\activate
+
+Paso 4: arrancar servidor:
+  python manage.py runserver
+
+
+2) macOS
+--------
+Paso 1: abrir Terminal en la carpeta del proyecto.
+Paso 2: ejecutar:
+  bash preparar_entorno_macos.sh
+
+Paso 3: activar entorno virtual:
+  source .venv/bin/activate
+
+Paso 4: arrancar servidor:
+  python manage.py runserver
+
+
+3) VERSION TODO EN UNO (OPCIONAL)
+---------------------------------
+Estas versiones intentan crear/importar base de datos automaticamente.
+
+Windows PowerShell:
+  powershell -ExecutionPolicy Bypass -File .\preparar_entorno_todo_en_uno.ps1
+
+macOS/Linux bash:
+  bash preparar_entorno_todo_en_uno.sh
+
+Nota:
+- Requieren cliente mysql disponible en PATH para la parte SQL.
+- Si no existe cliente mysql, los scripts avisan y continúan con la parte Python.
+
+
+4) VARIABLES DE ENTORNO MYSQL (SI HACEN FALTA)
+----------------------------------------------
+Windows CMD:
+  set DB_HOST=localhost
+  set DB_PORT=3306
+  set DB_NAME=clases_ceu_bc_prof
+  set DB_USER=root
+  set DB_PASSWORD=
+
+PowerShell:
+  $env:DB_HOST="localhost"
+  $env:DB_PORT="3306"
+  $env:DB_NAME="clases_ceu_bc_prof"
+  $env:DB_USER="root"
+  $env:DB_PASSWORD=""
+
+macOS/Linux:
+  export DB_HOST=localhost
+  export DB_PORT=3306
+  export DB_NAME=clases_ceu_bc_prof
+  export DB_USER=root
+  export DB_PASSWORD=
+
+
+5) PROBLEMAS COMUNES Y SOLUCION RAPIDA
+--------------------------------------
+Problema: "python no se reconoce"
+- Instalar Python 3.10+ y marcar opcion "Add Python to PATH" en Windows.
+
+Problema: "pip no se reconoce"
+- Los scripts usan "python -m pip", por lo que normalmente se corrige solo.
+
+Problema: fallo instalando mysqlclient
+- El script instala PyMySQL como alternativa.
+- Seguir el aviso del script para habilitarlo en miproyecto_gbd/__init__.py.
+
+Problema: check de Django falla por conexion
+- Revisar DB_HOST, DB_NAME, DB_USER, DB_PASSWORD, DB_PORT.
+
+Problema: PowerShell bloquea scripts
+- Usar preparar_entorno.cmd.
+
+
+6) COMPROBACION FINAL
+---------------------
+Cuando todo este correcto:
+- Existe la carpeta .venv
+- Se puede activar el entorno virtual
+- "python manage.py runserver" arranca sin errores de dependencias
+
+Fin de la guia.
